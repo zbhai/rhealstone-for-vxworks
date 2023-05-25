@@ -32,41 +32,37 @@ typedef union timeBase
  * usrAppInit - initialize the users application
  */
 
-char *task1_name = "task1", *task2_name = "task2", *test_name = "test";
-int task1_prio, task2_prio = 0;
-int test_prio = 1;
-int task1_ss, task2_ss, test_ss = 1024 * 2;
-int task1_id, task2_id, test_id = 0;
 
-int task_1(void)
+char *time_name = "time", *assistant_name = "assistant", *test_name = "test";
+int time_prio, assistant_prio = 1;
+int test_prio = 2;
+int time_ss, assistant_ss, test_ss = 1024 * 10;
+int time_id, assistant_id, test_id = 0;
+
+
+int assistant_task(void)
 {
-    int self_id = 0;
-    int uCounter = 0;
+    /* ------ preparation ------ */
+    /* activate the time task */
+    taskActivate(time_id);
 
-    self_id = taskIdSelf();
-    taskSuspend(self_id);
-
-    sched_yield();
-
-    printf("task 1 will start the operation\n\r");
-
-    while ((uCounter++) < LOOP)
+    /* ----- function body ----- */
+    while(1)
     {
         sched_yield();
     }
+
+    return OK;
 }
 
-int task_2(void)
+int time_task(void)
 {
-    int self_id = 0;
+    /* ------ preparation ------ */
     int uCounter = 0;
     TIME_BASE tt_start, tt_end = {0};
     UINT64 uUs = 0;
 
-    taskResume(task1_id);
-
-    printf("task 2 will start the operation\n\r");
-
+    /* ----- function body ----- */
     vxTimeBaseGet(&tt_start.val32.hi, &tt_start.val32.lo);
     while ((uCounter++) < LOOP)
     {
@@ -76,14 +72,11 @@ int task_2(void)
     // usRecord[tloop] = (UINT64)(((record[tloop][1].val64 - record[tloop][0].val64) * 1000000 * 4) / (UINT64)SYS_CLK_FREQ);
     uUs = (UINT64)(((tt_end.val64 - tt_start.val64) * 1000000 * 4) / (UINT64)SYS_CLK_FREQ);
 
-    sleep(2);
-
-    printf("the loop %d times switch time is %lld \n\r", uCounter, uUs);
+    printf("the loop %d times switch time is %lld \n\r", 2 * uCounter, uUs);
 }
 
 int test_task(void)
 {
-
     /* calculate the loop overhead */
     {
         int uCounter = 0;
@@ -106,7 +99,7 @@ int test_task(void)
     task1_id = taskCreate(task1_name, task1_prio, 0, task1_ss, task_1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     task2_id = taskCreate(task2_name, task2_prio, 0, task2_ss, task_2, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     taskActivate(task1_id);
-    taskActivate(task2_id);
+
 }
 
 void usrAppInit(void)
